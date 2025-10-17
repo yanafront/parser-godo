@@ -42,7 +42,7 @@ const stringSession = new StringSession(tgSession);
   console.log(client.session.save()); 
 
   const targetChats = ["@pratsa_vakansiil", "@pratsa_vakansii", "@pratsa_vakansiic", 
-                       "@rabota_v_minske77","@Rabota_v_Minske13", ,"@rabota_v_minske1", "@testjonsforme"];
+                       "@rabota_v_minske77", "@Rabota_v_Minske13", "@rabota_v_minske1", "@testjonsforme"];
 
   for (const chat of targetChats) {
     await client.addEventHandler(async (event: NewMessageEvent) => {
