@@ -2,7 +2,7 @@ import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import { NewMessage, NewMessageEvent } from "telegram/events";
 import readlineSync from "readline-sync";
-import { pool, saveMessage } from "./db.ts";
+import { initDatabase, saveMessage } from "./db.ts";
 import { sendMessage } from "./ai.ts";
 import type { JsonMessage } from "./types.ts";
 import dotenv from "dotenv";
@@ -14,17 +14,27 @@ const apiId = Number(process.env.API_ID);
 const apiHash = process.env.API_HASH || "";
 const tgSession = process.env.TG_SESSION || "";
 const tgPhone= process.env.TG_PHONE || "";
+const tgCode = process.env.TG_CODE || "";
 const stringSession = new StringSession(tgSession);
 
 (async () => {
+  await initDatabase();
+  console.log("База данных инициализирована");
+  
   const client = new TelegramClient(stringSession, apiId, apiHash, {
     connectionRetries: 5,
   });
 
   await client.start({
-    phoneNumber: async () => readlineSync.question("Enter phone: "),
-    password: async () =>   readlineSync.question("Enter password: "),
-    phoneCode: async () => readlineSync.question("Enter code: "),
+    phoneNumber: async () => tgPhone,
+    password: async () => {
+      console.log("Введите пароль двухфакторной аутентификации (если включена):");
+      return readlineSync.question("Password: ");
+    },
+    phoneCode: async () => {
+      console.log("Введите код подтверждения из Telegram:");
+      return readlineSync.question("Code: ");
+    },
     onError: (err) => console.log(err),
   });
 
