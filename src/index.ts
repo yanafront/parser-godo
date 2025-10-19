@@ -2,9 +2,9 @@ import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import { NewMessage, NewMessageEvent } from "telegram/events";
 import readlineSync from "readline-sync";
-import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db.ts";
-import { sendMessage } from "./ai.ts";
-import type { JsonMessage } from "./types.ts";
+import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db.js";
+import { sendMessage } from "./ai.js";
+import type { JsonMessage } from "./types.js";
 import dotenv from "dotenv";
 import http from "http";
 

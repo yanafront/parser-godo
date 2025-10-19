@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,8 +17,7 @@
     "@types/pg": "^8.15.5",
     "@types/readline-sync": "^1.4.8",
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "tsx": "^4.20.6"
   },
   "dependencies": {
     "@types/sqlite3": "^3.1.11",
@@ -30,6 +29,7 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "telegraf": "^4.16.3",
-    "telegram": "^2.26.22"
+    "telegram": "^2.26.22",
+    "typescript": "^5.9.3"
   }
 }
