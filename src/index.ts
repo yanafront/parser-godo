@@ -6,6 +6,7 @@ import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db
 import { sendMessage } from "./ai.ts";
 import type { JsonMessage } from "./types.ts";
 import dotenv from "dotenv";
+import http from "http";
 
 
 dotenv.config();
@@ -94,4 +95,61 @@ const stringSession = new StringSession(tgSession);
   }
 
   console.log("✅ Все обработчики событий добавлены. Бот работает!");
+
+  // HTTP сервер для проверки статуса
+  const server = http.createServer(async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    if (req.url === '/health' || req.url === '/status') {
+      try {
+        const messageCount = await getMessageCount();
+        const isConnected = client.connected;
+        
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          status: 'ok',
+          connected: isConnected,
+          messageCount: messageCount,
+          uptime: process.uptime(),
+          timestamp: new Date().toISOString()
+        }));
+      } catch (error) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }));
+      }
+    } else if (req.url === '/messages') {
+      try {
+        const messages = await getAllMessages();
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          status: 'ok',
+          messages: messages,
+          count: messages.length
+        }));
+      } catch (error) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }));
+      }
+    } else {
+      res.statusCode = 404;
+      res.end(JSON.stringify({
+        status: 'not found',
+        availableEndpoints: ['/health', '/status', '/messages']
+      }));
+    }
+  });
+
+  const port = process.env.PORT || 3000;
+  server.listen(port, () => {
+    console.log(`🌐 HTTP сервер запущен на порту ${port}`);
+    console.log(`📊 Статус: http://localhost:${port}/health`);
+    console.log(`📋 Сообщения: http://localhost:${port}/messages`);
+  });
 })();
