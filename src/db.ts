@@ -7,16 +7,34 @@ let pool: Pool | null = null;
 
 export async function initDatabase() {
   if (!pool) {
+    // Проверяем наличие переменных Railway PostgreSQL
+    const hasRailwayVars = process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE;
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     
-    if (!connectionString) {
-      throw new Error('DATABASE_URL или POSTGRES_URL не установлена в переменных окружения');
+    if (!connectionString && !hasRailwayVars) {
+      throw new Error('Переменные базы данных не найдены. Нужны либо DATABASE_URL, либо PGHOST/PGUSER/PGPASSWORD/PGDATABASE');
     }
 
-    pool = new Pool({
-      connectionString: connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
+    let config;
+    if (connectionString) {
+      // Используем connection string если есть
+      config = {
+        connectionString: connectionString,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      };
+    } else {
+      // Используем отдельные переменные Railway
+      config = {
+        host: process.env.PGHOST,
+        user: process.env.PGUSER,
+        password: process.env.PGPASSWORD,
+        database: process.env.PGDATABASE,
+        port: parseInt(process.env.PGPORT || '5432'),
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      };
+    }
+
+    pool = new Pool(config);
 
     // Создаем таблицу если её нет
     const client = await pool.connect();
