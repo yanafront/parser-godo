@@ -78,6 +78,13 @@ const stringSession = new StringSession(tgSession);
         
         try {
           const msg = JSON.parse(json) as JsonMessage;
+          
+          // Проверяем качество вакансии
+          if (msg.message === "Не вакансия" || msg.message.length < 50) {
+            console.log(`⚠️ Пропускаю: не вакансия или слишком короткое сообщение`);
+            return;
+          }
+          
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
           
