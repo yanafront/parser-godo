@@ -82,8 +82,8 @@ const stringSession = new StringSession(tgSession);
           await saveMessage(chat, msg.message, msg.phone);
           
           client.setParseMode("html");
-          await client.sendMessage("me", { message: msg.message });
-          console.log(`✅ Сообщение обработано и отправлено в "Избранное"`);
+          await client.sendMessage("@go_do_minsk", { message: msg.message });
+          console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
           console.error("❌ Ошибка при парсинге JSON:", error);
           console.error("📄 Исходный JSON:", json);
