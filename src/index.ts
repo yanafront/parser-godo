@@ -77,7 +77,10 @@ const stringSession = new StringSession(tgSession);
         console.log(`📋 AI ответ:`, json);
         
         try {
-          const msg = JSON.parse(json) as JsonMessage;
+          // Очищаем ответ от возможных лишних символов
+          const cleanJson = json.trim().replace(/^[^{]*/, '').replace(/[^}]*$/, '');
+          
+          const msg = JSON.parse(cleanJson) as JsonMessage;
           
           // Проверяем качество вакансии
           if (msg.message === "Не вакансия" || msg.message.length < 50) {
@@ -93,7 +96,8 @@ const stringSession = new StringSession(tgSession);
           console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
           console.error("❌ Ошибка при парсинге JSON:", error);
-          console.error("📄 Исходный JSON:", json);
+          console.error("📄 Исходный ответ AI:", json);
+          console.error("📄 Очищенный JSON:", json.trim().replace(/^[^{]*/, '').replace(/[^}]*$/, ''));
         }
       } else {
         console.log(`⚠️ Пустое сообщение, пропускаю`);
