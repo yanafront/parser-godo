@@ -77,10 +77,23 @@ const stringSession = new StringSession(tgSession);
         console.log(`📋 AI ответ:`, json);
         
         try {
-          // Очищаем ответ от возможных лишних символов
-          const cleanJson = json.trim().replace(/^[^{]*/, '').replace(/[^}]*$/, '');
+          let msg: JsonMessage;
           
-          const msg = JSON.parse(cleanJson) as JsonMessage;
+          // Пытаемся найти JSON в ответе
+          const jsonMatch = json.match(/\{.*\}/s);
+          if (jsonMatch) {
+            msg = JSON.parse(jsonMatch[0]) as JsonMessage;
+          } else {
+            // Если AI вернул не JSON, создаем объект вручную
+            console.log(`⚠️ AI вернул не JSON, создаю объект вручную`);
+            const phoneMatch = json.match(/(\+375[0-9\s\-\(\)]+|@\w+)/g);
+            const phone = phoneMatch ? phoneMatch.join(', ') : '';
+            
+            msg = {
+              phone: phone,
+              message: json
+            };
+          }
           
           // Проверяем качество вакансии
           if (msg.message === "Не вакансия" || msg.message.length < 50) {
@@ -95,9 +108,8 @@ const stringSession = new StringSession(tgSession);
           await client.sendMessage("@go_do_minsk", { message: msg.message });
           console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
-          console.error("❌ Ошибка при парсинге JSON:", error);
+          console.error("❌ Ошибка при обработке ответа AI:", error);
           console.error("📄 Исходный ответ AI:", json);
-          console.error("📄 Очищенный JSON:", json.trim().replace(/^[^{]*/, '').replace(/[^}]*$/, ''));
         }
       } else {
         console.log(`⚠️ Пустое сообщение, пропускаю`);

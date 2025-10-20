@@ -10,7 +10,7 @@ export async function initDatabase() {
     // Проверяем наличие переменных Railway PostgreSQL
     const hasRailwayVars = process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE;
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    
+
     if (!connectionString && !hasRailwayVars) {
       throw new Error('Переменные базы данных не найдены. Нужны либо DATABASE_URL, либо PGHOST/PGUSER/PGPASSWORD/PGDATABASE');
     }
