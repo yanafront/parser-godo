@@ -79,10 +79,23 @@ const stringSession = new StringSession(tgSession);
         try {
           let msg: JsonMessage;
           
-          // Пытаемся найти JSON в ответе
-          const jsonMatch = json.match(/\{.*\}/s);
+          // Пытаемся найти JSON в ответе и исправить переносы строк
+          const jsonMatch = json.match(/\{[^}]*"phone"[^}]*"message"[^}]*\}/s);
           if (jsonMatch) {
-            msg = JSON.parse(jsonMatch[0]) as JsonMessage;
+            try {
+              // Заменяем реальные переносы строк на экранированные
+              const fixedJson = jsonMatch[0].replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+              msg = JSON.parse(fixedJson) as JsonMessage;
+            } catch (parseError) {
+              console.log(`⚠️ Ошибка парсинга найденного JSON, создаю объект вручную`);
+              const phoneMatch = json.match(/(\+375[0-9\s\-\(\)]+|@\w+)/g);
+              const phone = phoneMatch ? phoneMatch.join(', ') : '';
+              
+              msg = {
+                phone: phone,
+                message: json
+              };
+            }
           } else {
             // Если AI вернул не JSON, создаем объект вручную
             console.log(`⚠️ AI вернул не JSON, создаю объект вручную`);
