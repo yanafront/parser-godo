@@ -1,7 +1,6 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
-import readlineSync from "readline-sync";
 import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db.js";
 import { sendMessage } from "./ai.js";
 import type { JsonMessage } from "./types.js";
@@ -28,6 +27,7 @@ const apiHash = process.env.API_HASH || "";
 const tgSession = process.env.TG_SESSION || "";
 const tgPhone= process.env.TG_PHONE || "";
 const tgCode = process.env.TG_CODE || "";
+const tgPassword = process.env.TG_PASSWORD || "";
 const stringSession = new StringSession(tgSession);
 
 (async () => {
@@ -43,14 +43,8 @@ const stringSession = new StringSession(tgSession);
 
   await client.start({
     phoneNumber: async () => tgPhone,
-    password: async () => {
-      console.log("Введите пароль двухфакторной аутентификации (если включена):");
-      return readlineSync.question("Password: ");
-    },
-    phoneCode: async () => {
-      console.log("Введите код подтверждения из Telegram:");
-      return readlineSync.question("Code: ");
-    },
+    password: async () => tgPassword,
+    phoneCode: async () => tgCode,
     onError: (err) => console.log(err),
   });
 
