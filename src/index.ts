@@ -33,10 +33,10 @@ const stringSession = new StringSession(tgSession);
 (async () => {
   await initDatabase();
   console.log("База данных инициализирована");
-  
+
   const messageCount = await getMessageCount();
   console.log(`📊 В базе данных уже есть ${messageCount} сообщений`);
-  
+
   const client = new TelegramClient(stringSession, apiId, apiHash, {
     connectionRetries: 5,
   });
@@ -55,10 +55,9 @@ const stringSession = new StringSession(tgSession);
   });
 
   console.log("Авторизация прошла успешно!");
-  console.log(client.session.save()); 
+  console.log(client.session.save());
 
-  const targetChats = ["@pratsa_vakansiil", "@pratsa_vakansii", "@pratsa_vakansiic", 
-                       "@rabota_v_minske77", "@Rabota_v_Minske13", "@rabota_v_minske1", "@testjonsforme"];
+  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk"];
 
   console.log("🔍 Начинаю прослушивание чатов:", targetChats);
 
@@ -75,10 +74,10 @@ const stringSession = new StringSession(tgSession);
         console.log(`🤖 Отправляю в AI для обработки...`);
         const json = await sendMessage(text);
         console.log(`📋 AI ответ:`, json);
-        
+
         try {
           let msg: JsonMessage;
-          
+
           // Пытаемся найти JSON в ответе и исправить переносы строк
           const jsonMatch = json.match(/\{[^}]*"phone"[^}]*"message"[^}]*\}/s);
           if (jsonMatch) {
@@ -90,7 +89,7 @@ const stringSession = new StringSession(tgSession);
               console.log(`⚠️ Ошибка парсинга найденного JSON, создаю объект вручную`);
               const phoneMatch = json.match(/(\+375[0-9\s\-\(\)]+|@\w+)/g);
               const phone = phoneMatch ? phoneMatch.join(', ') : '';
-              
+
               msg = {
                 phone: phone,
                 message: json
@@ -101,24 +100,27 @@ const stringSession = new StringSession(tgSession);
             console.log(`⚠️ AI вернул не JSON, создаю объект вручную`);
             const phoneMatch = json.match(/(\+375[0-9\s\-\(\)]+|@\w+)/g);
             const phone = phoneMatch ? phoneMatch.join(', ') : '';
-            
+
             msg = {
               phone: phone,
               message: json
             };
           }
-          
+
           // Проверяем качество вакансии
           if (msg.message === "Не вакансия" || msg.message.length < 50) {
             console.log(`⚠️ Пропускаю: не вакансия или слишком короткое сообщение`);
             return;
           }
-          
+
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
-          
+
+          const cta = `\n\n<a href="https://t.me/go_do_job_bot">Найти подработку</a>`;
+          const postMessage = msg.message + cta;
+
           client.setParseMode("html");
-          await client.sendMessage("@go_do_minsk", { message: msg.message });
+          await client.sendMessage("@go_do_minsk", { message: postMessage });
           console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
           console.error("❌ Ошибка при обработке ответа AI:", error);
@@ -136,12 +138,12 @@ const stringSession = new StringSession(tgSession);
   const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    
+
     if (req.url === '/health' || req.url === '/status') {
       try {
         const messageCount = await getMessageCount();
         const isConnected = client.connected;
-        
+
         res.statusCode = 200;
         res.end(JSON.stringify({
           status: 'ok',
