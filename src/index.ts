@@ -36,6 +36,12 @@ const stringSession = new StringSession(tgSession);
 
   const messageCount = await getMessageCount();
   console.log(`📊 В базе данных уже есть ${messageCount} сообщений`);
+  
+  if (tgSession) {
+    console.log(`🔑 Используется сессия: ${tgSession.substring(0, 20)}...`);
+  } else {
+    console.log(`⚠️  Сессия не указана, будет создана новая`);
+  }
 
   const client = new TelegramClient(stringSession, apiId, apiHash, {
     connectionRetries: 5,
@@ -111,14 +117,19 @@ const stringSession = new StringSession(tgSession);
       console.error('   - Удалите TG_CODE');
       console.error('');
       console.error('');
-      console.error('🛑 НЕМЕДЛЕННО: Остановите один из запущенных ботов!');
-      console.error('   Railway будет перезапускаться до тех пор, пока не исправите конфликт.');
+      console.error('🛑 КРИТИЧЕСКАЯ ОШИБКА: Сессия используется одновременно!');
       console.error('');
+      console.error('📋 Действия для исправления:');
+      console.error('   1. Зайдите на Railway и ОСТАНОВИТЕ сервис вручную');
+      console.error('   2. Или остановите локальный запуск (если запущен)');
+      console.error('   3. Используйте одну сессию только в одном месте');
+      console.error('');
+      console.error('⏸️  Завершаю работу через 3 секунды...');
       
       setTimeout(() => {
-        console.error('⏸️  Останавливаю сервис...');
+        console.error('🛑 Завершение работы');
         process.exit(1);
-      }, 5000);
+      }, 3000);
       
       return;
     }
