@@ -41,15 +41,53 @@ const stringSession = new StringSession(tgSession);
     connectionRetries: 5,
   });
 
-  await client.start({
-    phoneNumber: async () => tgPhone,
-    password: async () => tgPassword,
-    phoneCode: async () => tgCode,
-    onError: (err) => console.log(err),
-  });
+  try {
+    await client.start({
+      phoneNumber: async () => {
+        if (!tgPhone) {
+          throw new Error('TG_PHONE не указан в переменных окружения');
+        }
+        return tgPhone;
+      },
+      password: async () => {
+        if (!tgPassword) {
+          return '';
+        }
+        return tgPassword;
+      },
+      phoneCode: async () => {
+        if (!tgCode) {
+          console.error('❌ TG_CODE не указан в переменных окружения');
+          console.error('💡 Для первого запуска на Railway:');
+          console.error('   1. Получите код подтверждения из Telegram');
+          console.error('   2. Добавьте переменную окружения TG_CODE=ваш_код');
+          console.error('   3. После успешной авторизации скопируйте сессию из логов');
+          console.error('   4. Добавьте TG_SESSION=сессия и удалите TG_CODE');
+          throw new Error('Код подтверждения не указан. Добавьте TG_CODE в переменные окружения на Railway');
+        }
+        console.log('📱 Использую код из переменных окружения');
+        return tgCode;
+      },
+      onError: (err) => {
+        console.error('❌ Ошибка авторизации:', err);
+      },
+    });
+  } catch (error) {
+    console.error('❌ Ошибка при запуске клиента:', error);
+    throw error;
+  }
 
-  console.log("Авторизация прошла успешно!");
-  console.log(client.session.save());
+  console.log("✅ Авторизация прошла успешно!");
+  
+  const newSession = client.session.save();
+  const sessionString = typeof newSession === 'string' ? newSession : String(newSession);
+  console.log("🔑 Текущая сессия:");
+  console.log(sessionString);
+  
+  if (sessionString !== tgSession && sessionString.length > 10) {
+    console.log('⚠️  Сессия изменилась! Обновите TG_SESSION на Railway:');
+    console.log(`TG_SESSION=${sessionString}`);
+  }
 
   const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk"];
 
