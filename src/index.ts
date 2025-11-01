@@ -68,12 +68,60 @@ const stringSession = new StringSession(tgSession);
         console.log('📱 Использую код из переменных окружения');
         return tgCode;
       },
-      onError: (err) => {
+      onError: (err: any) => {
+        const errorMsg = err?.errorMessage || err?.message || String(err);
+        const errorCode = err?.code || err?.errorCode;
+        
+        if (errorMsg?.includes('AUTH_KEY_DUPLICATED') || errorCode === 406) {
+          console.error('');
+          console.error('❌ ОШИБКА: Сессия используется одновременно в нескольких местах!');
+          console.error('💡 Остановите один из запущенных ботов (Railway или локальный)');
+          process.exit(1);
+        }
         console.error('❌ Ошибка авторизации:', err);
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Ошибка при запуске клиента:', error);
+    
+    const errorMsg = error?.errorMessage || error?.message || String(error);
+    const errorCode = error?.code || error?.errorCode;
+    
+    if (errorMsg?.includes('AUTH_KEY_DUPLICATED') || errorCode === 406) {
+      console.error('');
+      console.error('❌ ОШИБКА: Сессия используется одновременно в нескольких местах!');
+      console.error('');
+      console.error('💡 Решение:');
+      console.error('');
+      console.error('   ВАРИАНТ 1: Остановить локальный запуск (если бот работает на Railway)');
+      console.error('   - Нажмите Ctrl+C для остановки локального бота');
+      console.error('   - Или закройте терминал');
+      console.error('');
+      console.error('   ВАРИАНТ 2: Остановить бота на Railway');
+      console.error('   - Зайдите на Railway');
+      console.error('   - Остановите сервис (временно отключите деплой)');
+      console.error('   - Затем запустите локально: npm run dev');
+      console.error('');
+      console.error('   ВАРИАНТ 3: Создать новую сессию на Railway');
+      console.error('   - Очистите TG_SESSION на Railway (сделайте пустым)');
+      console.error('   - Остановите локальный запуск (если запущен)');
+      console.error('   - Добавьте TG_CODE в Railway');
+      console.error('   - Railway перезапустится и создаст новую сессию');
+      console.error('   - Скопируйте новую сессию из логов и сохраните в TG_SESSION');
+      console.error('   - Удалите TG_CODE');
+      console.error('');
+      console.error('');
+      console.error('🛑 НЕМЕДЛЕННО: Остановите один из запущенных ботов!');
+      console.error('   Railway будет перезапускаться до тех пор, пока не исправите конфликт.');
+      console.error('');
+      
+      setTimeout(() => {
+        console.error('⏸️  Останавливаю сервис...');
+        process.exit(1);
+      }, 5000);
+      
+      return;
+    }
     throw error;
   }
 
