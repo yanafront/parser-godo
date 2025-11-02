@@ -235,39 +235,49 @@ const tgPassword = process.env.TG_PASSWORD || "";
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
 
+          console.log(`📤 Отправляю сообщение с кнопкой "Найти работу"...`);
+          
           const button = new Api.KeyboardButtonUrl({
             text: "Найти работу",
             url: "https://t.me/go_do_job_bot"
           });
 
-          const row = new Api.KeyboardButtonRow({
-            buttons: [button]
-          });
-
-          const replyMarkup = new Api.ReplyInlineMarkup({
-            rows: [row]
-          });
-
-          console.log(`📤 Отправляю сообщение с кнопкой "Найти работу"...`);
           try {
-            await client.sendMessage("@go_do_minsk", {
+            const sentMessage = await client.sendMessage("@go_do_minsk", {
               message: msg.message,
               parseMode: "html",
-              buttons: replyMarkup,
+              buttons: [[button]],
               linkPreview: false
             });
             console.log(`✅ Сообщение отправлено в @go_do_minsk с кнопкой "Найти работу"`);
+            console.log(`📋 ID сообщения:`, sentMessage.id);
+            console.log(`🔘 Кнопка добавлена:`, button);
           } catch (sendError: any) {
             console.error(`❌ Ошибка при отправке с кнопкой:`, sendError?.message || sendError);
-            console.log(`⚠️  Пытаюсь отправить без кнопки...`);
+            console.error(`📋 Полная ошибка:`, sendError);
+            console.log(`⚠️  Пытаюсь отправить через ReplyInlineMarkup...`);
             try {
+              const row = new Api.KeyboardButtonRow({
+                buttons: [button]
+              });
+              const replyMarkup = new Api.ReplyInlineMarkup({
+                rows: [row]
+              });
+              await client.sendMessage("@go_do_minsk", {
+                message: msg.message,
+                parseMode: "html",
+                buttons: replyMarkup,
+                linkPreview: false
+              });
+              console.log(`✅ Сообщение отправлено через ReplyInlineMarkup`);
+            } catch (markupError: any) {
+              console.error(`❌ Ошибка с ReplyInlineMarkup:`, markupError?.message || markupError);
+              console.log(`⚠️  Пытаюсь отправить без кнопки...`);
               await client.sendMessage("@go_do_minsk", {
                 message: msg.message,
                 parseMode: "html"
               });
               console.log(`✅ Сообщение отправлено без кнопки (fallback)`);
-            } catch (fallbackError: any) {
-              console.error(`❌ Ошибка при отправке без кнопки:`, fallbackError?.message || fallbackError);
             }
           }
         } catch (error) {
