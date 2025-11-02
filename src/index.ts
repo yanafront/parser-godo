@@ -24,11 +24,9 @@ console.log('✅ Все переменные окружения загружен
 
 const apiId = Number(process.env.API_ID);
 const apiHash = process.env.API_HASH || "";
-const tgSession = process.env.TG_SESSION || "";
 const tgPhone= process.env.TG_PHONE || "";
 const tgCode = process.env.TG_CODE || "";
 const tgPassword = process.env.TG_PASSWORD || "";
-const stringSession = new StringSession(tgSession);
 
 (async () => {
   await initDatabase();
@@ -37,10 +35,39 @@ const stringSession = new StringSession(tgSession);
   const messageCount = await getMessageCount();
   console.log(`📊 В базе данных уже есть ${messageCount} сообщений`);
   
-  if (tgSession) {
-    console.log(`🔑 Используется сессия: ${tgSession.substring(0, 20)}...`);
+  let tgSessionRaw = process.env.TG_SESSION || "";
+  let tgSession = tgSessionRaw.trim();
+  
+  let stringSession: StringSession;
+  
+  if (!tgSession || tgSession.length < 10) {
+    console.log('⚠️  Сессия не указана или пустая. Будет создана новая сессия.');
+    console.log('💡 Если хотите использовать существующую сессию, добавьте TG_SESSION в переменные окружения.');
+    try {
+      stringSession = new StringSession("");
+    } catch (error) {
+      console.error('❌ Ошибка при создании новой сессии:', error);
+      console.error('💡 Это не должно происходить. Проверьте установку библиотеки telegram.');
+      process.exit(1);
+    }
   } else {
-    console.log(`⚠️  Сессия не указана, будет создана новая`);
+    console.log(`🔑 Используется сессия: ${tgSession.substring(0, 20)}...`);
+    try {
+      stringSession = new StringSession(tgSession);
+    } catch (error) {
+      console.error('❌ Ошибка при создании сессии:', error);
+      console.error('💡 Проблема: TG_SESSION содержит невалидное значение.');
+      console.error('');
+      console.error('📋 Решение на Railway:');
+      console.error('   1. Удалите или полностью очистите переменную TG_SESSION (оставьте пустой)');
+      console.error('   2. Добавьте переменную TG_CODE с кодом из Telegram');
+      console.error('   3. Railway перезапустится и создаст новую сессию');
+      console.error('   4. После авторизации скопируйте новую сессию из логов');
+      console.error('   5. Добавьте её в TG_SESSION и удалите TG_CODE');
+      console.error('');
+      console.error('⚠️  Текущее значение TG_SESSION на Railway невалидно. Очистите его!');
+      process.exit(1);
+    }
   }
 
   const client = new TelegramClient(stringSession, apiId, apiHash, {
