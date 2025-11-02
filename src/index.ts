@@ -268,7 +268,7 @@ const tgPassword = process.env.TG_PASSWORD || "";
             const result = await client.invoke(
               new Api.messages.SendMessage({
                 peer: entity,
-                message: " ",
+                message: "🔍 Найти подходящую работу",
                 entities: [],
                 replyMarkup: replyMarkup,
                 noWebpage: false,
@@ -281,7 +281,7 @@ const tgPassword = process.env.TG_PASSWORD || "";
             console.error(`❌ Ошибка при отправке кнопки:`, buttonError?.message || buttonError);
             try {
               await client.sendMessage("@go_do_minsk", {
-                message: " ",
+                message: "🔍 Найти подходящую работу",
                 parseMode: "html",
                 buttons: replyMarkup,
                 linkPreview: false
