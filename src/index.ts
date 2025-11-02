@@ -1,7 +1,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
-import { Api } from "telegram/tl";
+import { Api } from "telegram/tl/index.js";
 import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db.js";
 import { sendMessage } from "./ai.js";
 import type { JsonMessage } from "./types.js";

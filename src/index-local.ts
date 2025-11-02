@@ -1,7 +1,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
-import { Api } from "telegram/tl";
+import { Api } from "telegram/tl/index.js";
 import readlineSync from "readline-sync";
 import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db-local.js";
 import { sendMessage } from "./ai.js";
