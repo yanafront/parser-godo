@@ -117,7 +117,20 @@ const stringSession = new StringSession(tgSession);
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
           
-          console.log(`📤 Отправляю сообщение с кнопкой "Найти работу"...`);
+          console.log(`📤 Отправляю вакансию в канал...`);
+          try {
+            await client.sendMessage("@go_do_minsk", {
+              message: msg.message,
+              parseMode: "html",
+              linkPreview: false
+            });
+            console.log(`✅ Вакансия отправлена в @go_do_minsk`);
+          } catch (sendError: any) {
+            console.error(`❌ Ошибка при отправке вакансии:`, sendError?.message || sendError);
+            return;
+          }
+
+          console.log(`📤 Отправляю отдельное сообщение с кнопкой "Найти работу"...`);
           
           const button = new Api.KeyboardButtonUrl({
             text: "Найти работу",
@@ -133,41 +146,31 @@ const stringSession = new StringSession(tgSession);
           });
 
           try {
-            const sentMessage = await client.sendMessage("@go_do_minsk", {
-              message: msg.message,
-              parseMode: "html",
-              buttons: replyMarkup,
-              linkPreview: false
-            });
-            console.log(`✅ Сообщение отправлено в @go_do_minsk с кнопкой "Найти работу"`);
-            console.log(`📋 ID сообщения:`, sentMessage.id);
-            console.log(`🔘 ReplyMarkup отправлен:`, replyMarkup.className);
-          } catch (sendError: any) {
-            console.error(`❌ Ошибка при отправке через sendMessage:`, sendError?.message || sendError);
-            console.error(`📋 Полная ошибка:`, sendError);
-            console.log(`⚠️  Пытаюсь отправить через прямой API вызов...`);
+            const entity = await client.getEntity("@go_do_minsk");
+            const result = await client.invoke(
+              new Api.messages.SendMessage({
+                peer: entity,
+                message: " ",
+                entities: [],
+                replyMarkup: replyMarkup,
+                noWebpage: false,
+                silent: false
+              })
+            );
+            console.log(`✅ Отдельное сообщение с кнопкой "Найти работу" отправлено`);
+            console.log(`📋 Результат:`, result);
+          } catch (buttonError: any) {
+            console.error(`❌ Ошибка при отправке кнопки:`, buttonError?.message || buttonError);
             try {
-              const entity = await client.getEntity("@go_do_minsk");
-              const result = await client.invoke(
-                new Api.messages.SendMessage({
-                  peer: entity,
-                  message: msg.message,
-                  entities: [],
-                  replyMarkup: replyMarkup,
-                  noWebpage: false,
-                  silent: false
-                })
-              );
-              console.log(`✅ Сообщение отправлено через прямой API вызов с кнопкой`);
-              console.log(`📋 Результат:`, result);
-            } catch (apiError: any) {
-              console.error(`❌ Ошибка при отправке через API:`, apiError?.message || apiError);
-              console.log(`⚠️  Пытаюсь отправить без кнопки...`);
               await client.sendMessage("@go_do_minsk", {
-                message: msg.message,
-                parseMode: "html"
+                message: " ",
+                parseMode: "html",
+                buttons: replyMarkup,
+                linkPreview: false
               });
-              console.log(`✅ Сообщение отправлено без кнопки (fallback)`);
+              console.log(`✅ Кнопка отправлена через sendMessage`);
+            } catch (sendError2: any) {
+              console.error(`❌ Ошибка при отправке кнопки через sendMessage:`, sendError2?.message || sendError2);
             }
           }
         } catch (error) {
