@@ -1,6 +1,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
+import { Api } from "telegram/tl";
 import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db.js";
 import { sendMessage } from "./ai.js";
 import type { JsonMessage } from "./types.js";
@@ -34,12 +35,12 @@ const tgPassword = process.env.TG_PASSWORD || "";
 
   const messageCount = await getMessageCount();
   console.log(`📊 В базе данных уже есть ${messageCount} сообщений`);
-  
+
   let tgSessionRaw = process.env.TG_SESSION || "";
   let tgSession = tgSessionRaw.trim();
-  
+
   let stringSession: StringSession;
-  
+
   if (!tgSession || tgSession.length < 10) {
     console.log('⚠️  Сессия не указана или пустая. Будет создана новая сессия.');
     console.log('💡 Если хотите использовать существующую сессию, добавьте TG_SESSION в переменные окружения.');
@@ -104,7 +105,7 @@ const tgPassword = process.env.TG_PASSWORD || "";
       onError: (err: any) => {
         const errorMsg = err?.errorMessage || err?.message || String(err);
         const errorCode = err?.code || err?.errorCode;
-        
+
         if (errorMsg?.includes('AUTH_KEY_DUPLICATED') || errorCode === 406) {
           console.error('');
           console.error('❌ ОШИБКА: Сессия используется одновременно в нескольких местах!');
@@ -116,10 +117,10 @@ const tgPassword = process.env.TG_PASSWORD || "";
     });
   } catch (error: any) {
     console.error('❌ Ошибка при запуске клиента:', error);
-    
+
     const errorMsg = error?.errorMessage || error?.message || String(error);
     const errorCode = error?.code || error?.errorCode;
-    
+
     if (errorMsg?.includes('AUTH_KEY_DUPLICATED') || errorCode === 406) {
       console.error('');
       console.error('❌ ОШИБКА: Сессия используется одновременно в нескольких местах!');
@@ -152,24 +153,24 @@ const tgPassword = process.env.TG_PASSWORD || "";
       console.error('   3. Используйте одну сессию только в одном месте');
       console.error('');
       console.error('⏸️  Завершаю работу через 3 секунды...');
-      
+
       setTimeout(() => {
         console.error('🛑 Завершение работы');
         process.exit(1);
       }, 3000);
-      
+
       return;
     }
     throw error;
   }
 
   console.log("✅ Авторизация прошла успешно!");
-  
+
   const newSession = client.session.save();
   const sessionString = typeof newSession === 'string' ? newSession : String(newSession);
   console.log("🔑 Текущая сессия:");
   console.log(sessionString);
-  
+
   if (sessionString !== tgSession && sessionString.length > 10) {
     console.log('⚠️  Сессия изменилась! Обновите TG_SESSION на Railway:');
     console.log(`TG_SESSION=${sessionString}`);
@@ -234,11 +235,24 @@ const tgPassword = process.env.TG_PASSWORD || "";
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
 
-          const cta = `\n\n<a href="https://t.me/go_do_job_bot">Найти подработку</a>`;
-          const postMessage = msg.message + cta;
+          const inlineKeyboard = new Api.ReplyInlineMarkup({
+            rows: [
+              new Api.KeyboardButtonRow({
+                buttons: [
+                  new Api.KeyboardButtonUrl({
+                    text: "Найти работу",
+                    url: "https://t.me/go_do_job_bot"
+                  })
+                ]
+              })
+            ]
+          });
 
           client.setParseMode("html");
-          await client.sendMessage("@go_do_minsk", { message: postMessage });
+          await client.sendMessage("@go_do_minsk", {
+            message: msg.message,
+            buttons: inlineKeyboard
+          });
           console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
           console.error("❌ Ошибка при обработке ответа AI:", error);

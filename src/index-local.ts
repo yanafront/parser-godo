@@ -1,6 +1,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
+import { Api } from "telegram/tl";
 import readlineSync from "readline-sync";
 import { initDatabase, saveMessage, getMessageCount, getAllMessages } from "./db-local.js";
 import { sendMessage } from "./ai.js";
@@ -57,8 +58,7 @@ const stringSession = new StringSession(tgSession);
   console.log("Авторизация прошла успешно!");
   console.log(client.session.save()); 
 
-  const targetChats = ["@pratsa_vakansiil", "@pratsa_vakansii", "@pratsa_vakansiic", 
-                       "@rabota_v_minske77", "@Rabota_v_Minske13", "@rabota_v_minske1", "@testjonsforme"];
+  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk"];
 
   console.log("🔍 Начинаю прослушивание чатов:", targetChats);
 
@@ -117,8 +117,24 @@ const stringSession = new StringSession(tgSession);
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
           
+          const inlineKeyboard = new Api.ReplyInlineMarkup({
+            rows: [
+              new Api.KeyboardButtonRow({
+                buttons: [
+                  new Api.KeyboardButtonUrl({
+                    text: "Подобрать вакансию",
+                    url: "https://t.me/go_do_job_bot"
+                  })
+                ]
+              })
+            ]
+          });
+          
           client.setParseMode("html");
-          await client.sendMessage("@go_do_minsk", { message: msg.message });
+          await client.sendMessage("@go_do_minsk", { 
+            message: msg.message,
+            buttons: inlineKeyboard
+          });
           console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
         } catch (error) {
           console.error("❌ Ошибка при обработке ответа AI:", error);
