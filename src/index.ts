@@ -235,16 +235,20 @@ const tgPassword = process.env.TG_PASSWORD || "";
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
 
-          const messageWithLink = msg.message + `\n\n🚀 <a href="https://t.me/go_do_job_bot">Найти работу</a> - бот найдёт идеальную работу автоматически`;
-
-          console.log(`📤 Отправляю вакансию с ссылкой на бота...`);
+          console.log(`📤 Отправляю вакансию с кнопкой...`);
           try {
-            await client.sendMessage("@go_do_minsk", {
-              message: messageWithLink,
-              parseMode: "html",
-              linkPreview: false
+            const button = new Api.KeyboardButtonUrl({
+              text: "Найти работу",
+              url: "https://t.me/go_do_job_bot"
             });
-            console.log(`✅ Вакансия с ссылкой на бота отправлена в @go_do_minsk`);
+            
+            await client.sendMessage("@go_do_minsk", {
+              message: msg.message,
+              parseMode: "html",
+              linkPreview: false,
+              buttons: [[button]]
+            });
+            console.log(`✅ Вакансия с кнопкой отправлена в @go_do_minsk`);
           } catch (sendError: any) {
             console.error(`❌ Ошибка при отправке вакансии:`, sendError?.message || sendError);
           }
