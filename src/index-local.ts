@@ -117,7 +117,7 @@ const stringSession = new StringSession(tgSession);
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
           
-          const messageWithLink = msg.message + `\n\n🚀 <a href="https://t.me/go_do_job_bot">Подобрать вакансию за минуту</a> — бот найдёт идеальную работу автоматически`;
+          const messageWithLink = msg.message + `\n\n🚀 <a href="https://t.me/go_do_job_bot">Найти работу</a> - бот найдёт идеальную работу автоматически`;
 
           console.log(`📤 Отправляю вакансию с ссылкой на бота...`);
           try {
