@@ -255,16 +255,20 @@ const tgPassword = process.env.TG_PASSWORD || "";
             url: "https://t.me/go_do_job_bot"
           });
 
-          const row = new Api.KeyboardButtonRow({
-            buttons: [button]
-          });
-
-          const replyMarkup = new Api.ReplyInlineMarkup({
-            rows: [row]
-          });
-
           try {
             const entity = await client.getEntity("@go_do_minsk");
+            
+            const row = new Api.KeyboardButtonRow({
+              buttons: [button]
+            });
+
+            const replyMarkup = new Api.ReplyInlineMarkup({
+              rows: [row]
+            });
+
+            console.log(`🔘 Создан ReplyMarkup:`, replyMarkup.className);
+            console.log(`🔘 Кнопка:`, button.text, button.url);
+
             const result = await client.invoke(
               new Api.messages.SendMessage({
                 peer: entity,
@@ -275,20 +279,40 @@ const tgPassword = process.env.TG_PASSWORD || "";
                 silent: false
               })
             );
-            console.log(`✅ Отдельное сообщение с кнопкой "Найти работу" отправлено`);
+            console.log(`✅ Отдельное сообщение с кнопкой "Найти работу" отправлено через API`);
             console.log(`📋 Результат:`, result);
           } catch (buttonError: any) {
-            console.error(`❌ Ошибка при отправке кнопки:`, buttonError?.message || buttonError);
+            console.error(`❌ Ошибка при отправке через API:`, buttonError?.message || buttonError);
+            console.error(`📋 Полная ошибка:`, buttonError);
+            console.log(`⚠️  Пытаюсь отправить через sendMessage с массивом кнопок...`);
             try {
               await client.sendMessage("@go_do_minsk", {
                 message: "🔍 Найти подходящую работу",
                 parseMode: "html",
-                buttons: replyMarkup,
+                buttons: [[button]],
                 linkPreview: false
               });
-              console.log(`✅ Кнопка отправлена через sendMessage`);
+              console.log(`✅ Кнопка отправлена через sendMessage с массивом`);
             } catch (sendError2: any) {
-              console.error(`❌ Ошибка при отправке кнопки через sendMessage:`, sendError2?.message || sendError2);
+              console.error(`❌ Ошибка при отправке через sendMessage:`, sendError2?.message || sendError2);
+              console.log(`⚠️  Пытаюсь отправить через sendMessage с ReplyMarkup...`);
+              try {
+                const row = new Api.KeyboardButtonRow({
+                  buttons: [button]
+                });
+                const replyMarkup = new Api.ReplyInlineMarkup({
+                  rows: [row]
+                });
+                await client.sendMessage("@go_do_minsk", {
+                  message: "🔍 Найти подходящую работу",
+                  parseMode: "html",
+                  buttons: replyMarkup,
+                  linkPreview: false
+                });
+                console.log(`✅ Кнопка отправлена через sendMessage с ReplyMarkup`);
+              } catch (sendError3: any) {
+                console.error(`❌ Все способы не сработали:`, sendError3?.message || sendError3);
+              }
             }
           }
         } catch (error) {
