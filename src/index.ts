@@ -235,6 +235,9 @@ const tgPassword = process.env.TG_PASSWORD || "";
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
 
+          // Добавляем ссылку в текст для надежности
+          const messageWithLink = msg.message + `\n\n<a href="https://t.me/go_do_job_bot">Найти работу</a> — бот найдёт идеальную работу автоматически`;
+
           console.log(`📤 Отправляю вакансию с кнопкой...`);
           try {
             const button = new Api.KeyboardButtonUrl({
@@ -242,15 +245,34 @@ const tgPassword = process.env.TG_PASSWORD || "";
               url: "https://t.me/go_do_job_bot"
             });
             
+            const row = new Api.KeyboardButtonRow({
+              buttons: [button]
+            });
+            
+            const replyMarkup = new Api.ReplyInlineMarkup({
+              rows: [row]
+            });
+            
             await client.sendMessage("@go_do_minsk", {
-              message: msg.message,
+              message: messageWithLink,
               parseMode: "html",
               linkPreview: false,
-              buttons: [[button]]
+              buttons: replyMarkup
             });
-            console.log(`✅ Вакансия с кнопкой отправлена в @go_do_minsk`);
+            console.log(`✅ Вакансия с кнопкой и ссылкой отправлена в @go_do_minsk`);
           } catch (sendError: any) {
             console.error(`❌ Ошибка при отправке вакансии:`, sendError?.message || sendError);
+            // Fallback: отправляем только с HTML-ссылкой
+            try {
+              await client.sendMessage("@go_do_minsk", {
+                message: messageWithLink,
+                parseMode: "html",
+                linkPreview: false
+              });
+              console.log(`✅ Вакансия отправлена с HTML-ссылкой (fallback)`);
+            } catch (fallbackError: any) {
+              console.error(`❌ Ошибка при отправке (fallback):`, fallbackError?.message || fallbackError);
+            }
           }
         } catch (error) {
           console.error("❌ Ошибка при обработке ответа AI:", error);
