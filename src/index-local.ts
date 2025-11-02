@@ -124,36 +124,44 @@ const stringSession = new StringSession(tgSession);
             url: "https://t.me/go_do_job_bot"
           });
 
+          const row = new Api.KeyboardButtonRow({
+            buttons: [button]
+          });
+
+          const replyMarkup = new Api.ReplyInlineMarkup({
+            rows: [row]
+          });
+
           try {
             const sentMessage = await client.sendMessage("@go_do_minsk", {
               message: msg.message,
               parseMode: "html",
-              buttons: [[button]],
+              buttons: replyMarkup,
               linkPreview: false
             });
             console.log(`✅ Сообщение отправлено в @go_do_minsk с кнопкой "Найти работу"`);
             console.log(`📋 ID сообщения:`, sentMessage.id);
-            console.log(`🔘 Кнопка добавлена:`, button);
+            console.log(`🔘 ReplyMarkup отправлен:`, replyMarkup.className);
           } catch (sendError: any) {
-            console.error(`❌ Ошибка при отправке с кнопкой:`, sendError?.message || sendError);
+            console.error(`❌ Ошибка при отправке через sendMessage:`, sendError?.message || sendError);
             console.error(`📋 Полная ошибка:`, sendError);
-            console.log(`⚠️  Пытаюсь отправить через ReplyInlineMarkup...`);
+            console.log(`⚠️  Пытаюсь отправить через прямой API вызов...`);
             try {
-              const row = new Api.KeyboardButtonRow({
-                buttons: [button]
-              });
-              const replyMarkup = new Api.ReplyInlineMarkup({
-                rows: [row]
-              });
-              await client.sendMessage("@go_do_minsk", {
-                message: msg.message,
-                parseMode: "html",
-                buttons: replyMarkup,
-                linkPreview: false
-              });
-              console.log(`✅ Сообщение отправлено через ReplyInlineMarkup`);
-            } catch (markupError: any) {
-              console.error(`❌ Ошибка с ReplyInlineMarkup:`, markupError?.message || markupError);
+              const entity = await client.getEntity("@go_do_minsk");
+              const result = await client.invoke(
+                new Api.messages.SendMessage({
+                  peer: entity,
+                  message: msg.message,
+                  entities: [],
+                  replyMarkup: replyMarkup,
+                  noWebpage: false,
+                  silent: false
+                })
+              );
+              console.log(`✅ Сообщение отправлено через прямой API вызов с кнопкой`);
+              console.log(`📋 Результат:`, result);
+            } catch (apiError: any) {
+              console.error(`❌ Ошибка при отправке через API:`, apiError?.message || apiError);
               console.log(`⚠️  Пытаюсь отправить без кнопки...`);
               await client.sendMessage("@go_do_minsk", {
                 message: msg.message,
