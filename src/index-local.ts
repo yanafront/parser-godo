@@ -58,7 +58,7 @@ const stringSession = new StringSession(tgSession);
   console.log("Авторизация прошла успешно!");
   console.log(client.session.save()); 
 
-  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk", "@abota_v_minske1"];
+  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk", "@rabota_v_minske1", "@pratsa_vakansiil"];
 
   console.log("🔍 Начинаю прослушивание чатов:", targetChats);
 

@@ -176,7 +176,7 @@ const tgPassword = process.env.TG_PASSWORD || "";
     console.log(`TG_SESSION=${sessionString}`);
   }
 
-  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk", "@rabota_v_minske1"];
+  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk", "@rabota_v_minske1", "@pratsa_vakansiil"];
 
   console.log("🔍 Начинаю прослушивание чатов:", targetChats);
 
