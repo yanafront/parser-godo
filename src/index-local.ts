@@ -58,7 +58,7 @@ const stringSession = new StringSession(tgSession);
   console.log("Авторизация прошла успешно!");
   console.log(client.session.save()); 
 
-  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk"];
+  const targetChats = ["@rabota_v_minske77", "@JobsBelarus", "@Rabota_Podrabotki_Minsk", "@abota_v_minske1"];
 
   console.log("🔍 Начинаю прослушивание чатов:", targetChats);
 
@@ -117,25 +117,37 @@ const stringSession = new StringSession(tgSession);
           console.log(`💾 Сохраняю в БД:`, { chat, message: msg.message.substring(0, 50), phone: msg.phone });
           await saveMessage(chat, msg.message, msg.phone);
           
-          const inlineKeyboard = new Api.ReplyInlineMarkup({
-            rows: [
-              new Api.KeyboardButtonRow({
-                buttons: [
-                  new Api.KeyboardButtonUrl({
-                    text: "Подобрать вакансию",
-                    url: "https://t.me/go_do_job_bot"
-                  })
-                ]
-              })
-            ]
+          const button = new Api.KeyboardButtonUrl({
+            text: "Найти работу",
+            url: "https://t.me/go_do_job_bot"
+          });
+
+          const row = new Api.KeyboardButtonRow({
+            buttons: [button]
+          });
+
+          const replyMarkup = new Api.ReplyInlineMarkup({
+            rows: [row]
           });
           
-          client.setParseMode("html");
-          await client.sendMessage("@go_do_minsk", { 
-            message: msg.message,
-            buttons: inlineKeyboard
-          });
-          console.log(`✅ Сообщение обработано и отправлено в @go_do_minsk`);
+          console.log(`📤 Отправляю сообщение с кнопкой "Найти работу"...`);
+          try {
+            await client.sendMessage("@go_do_minsk", { 
+              message: msg.message,
+              parseMode: "html",
+              buttons: replyMarkup,
+              linkPreview: false
+            });
+            console.log(`✅ Сообщение отправлено в @go_do_minsk с кнопкой "Найти работу"`);
+          } catch (sendError: any) {
+            console.error(`❌ Ошибка при отправке с кнопкой:`, sendError?.message || sendError);
+            console.log(`⚠️  Пытаюсь отправить без кнопки...`);
+            await client.sendMessage("@go_do_minsk", {
+              message: msg.message,
+              parseMode: "html"
+            });
+            console.log(`✅ Сообщение отправлено без кнопки (fallback)`);
+          }
         } catch (error) {
           console.error("❌ Ошибка при обработке ответа AI:", error);
           console.error("📄 Исходный ответ AI:", json);
